@@ -1,0 +1,8 @@
+prefix=/home/yingying/catkin_ws/install
+
+Name: auto_aruco_marker_finder
+Description: Description of auto_aruco_marker_finder
+Version: 0.0.0
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: 

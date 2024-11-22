@@ -1,0 +1,8 @@
+prefix=/home/yingying/catkin_ws/devel
+
+Name: navigation_in_unknown_map
+Description: Description of navigation_in_unknown_map
+Version: 1.2.5
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: 
