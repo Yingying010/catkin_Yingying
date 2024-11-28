@@ -1,2 +1,2 @@
-COMP0182-Multi-Agent-Systems/Week_03/turtlebot3_burger_auto_navigation/auto_aruco_marker_finder:COMP0182-Multi-Agent-Systems/Week_03/turtlebot3_burger_auto_navigation/auto_navigation:COMP0182-Multi-Agent-Systems/Week_03/turtlebot3_burger_auto_navigation/naive_obstacle_avoidance:yolov8_ros_usb_camera/yolov8_ros:yolov8_ros_usb_camera/yolov8_ros_msgs
--DCATKIN_DEVEL_PREFIX=/home/yingying/catkin_ws/devel -DCMAKE_INSTALL_PREFIX=/home/yingying/catkin_ws/install -G Unix Makefiles
+
+-DCATKIN_DEVEL_PREFIX=/home/yingying/catkin_Yingying/devel -DCMAKE_INSTALL_PREFIX=/home/yingying/catkin_Yingying/install -G Unix Makefiles

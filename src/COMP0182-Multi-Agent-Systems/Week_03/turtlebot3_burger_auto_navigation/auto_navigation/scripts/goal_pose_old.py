@@ -35,7 +35,7 @@ def check_goal_reached(init_pose, goal_pose, bias):
 # init_msg = rospy.wait_for_message('/id100/aruco_single/pose', PoseStamped)
 cmd_pub = rospy.Publisher('cmd_vel', Twist, queue_size=1)
 init_pose = rospy.wait_for_message('/id100/aruco_single/pose', PoseStamped)
-goal_pose = rospy.wait_for_message('/id101/aruco_single/pose', PoseStamped)
+goal_pose = rospy.wait_for_message('/id500/aruco_single/pose', PoseStamped)
 twist = Twist()
 while not check_goal_reached(init_pose, goal_pose, 0.05):
     init_pose = rospy.wait_for_message('/id100/aruco_single/pose', PoseStamped)
