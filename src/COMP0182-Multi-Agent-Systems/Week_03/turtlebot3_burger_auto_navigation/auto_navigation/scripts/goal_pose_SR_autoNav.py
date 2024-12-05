@@ -98,7 +98,7 @@ def navigation(turtlebot_name, aruco_id, goal_list):
         goal_x, goal_y = goal_list[current_position_idx]
 
         # Check if the goal has been reached
-        if check_goal_reached(init_pose, goal_x, goal_y, tolerance=0.1):
+        if check_goal_reached(init_pose, goal_x, goal_y, tolerance=0.12):
             rospy.loginfo(f"Waypoint {current_position_idx + 1} reached: Moving to next waypoint.")
             current_position_idx += 1  # Move to the next waypoint
 
@@ -152,7 +152,7 @@ def navigation(turtlebot_name, aruco_id, goal_list):
         angular_velocity = -k_angular * theta  # Rotate towards the goal direction
 
         # Limit maximum speeds if necessary
-        max_linear_speed = 2.0  # meters per second
+        max_linear_speed = 4.0  # meters per second
         max_angular_speed = 1.5  # radians per second
 
         linear_velocity = max(-max_linear_speed, min(max_linear_speed, linear_velocity))
@@ -201,10 +201,10 @@ def get_transformation_matrix(aruco_markers):
     ])
 
     sim_points = np.float32([
-        [0, 0],     # Bottom-left corner in simulation
-        [10, 0],    # Bottom-right corner in simulation
-        [0, 10],    # Top-left corner in simulation
-        [10, 10]    # Top-right corner in simulation
+        [0.1, 0.1],     # Bottom-left corner in simulation
+        [9.9, 0.3],    # Bottom-right corner in simulation
+        [0.1, 9.9],    # Top-left corner in simulation
+        [9.8, 9.8]    # Top-right corner in simulation
     ])
 
     # Calculate the perspective transformation matrix
@@ -293,7 +293,7 @@ def main():
         rospy.logerr(f"Failed to read and transform waypoints: {e}")
         return
     
-    turtlebot_name = "tb3_1"  # Name of your TurtleBot
+    turtlebot_name = "tb3_0"  # Name of your TurtleBot
     aruco_id = "id504"          # ArUco marker ID for localization
 
     # Begin the navigation process
