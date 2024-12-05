@@ -91,8 +91,51 @@ def check_goal_reached(current_pose, goal_x, goal_y, tolerance):
        return True
    else:
        return False
+   
 
-def navigation(turtlebot_name, aruco_id, goal_list):
+def fetchNavigation():
+    cmd_pub = rospy.Publisher('cmd_vel', Twist, queue_size=1)
+    twist = Twist()
+    while not check_goal_reached(init_pose, goal_pose, 0.05):
+        init_pose = rospy.wait_for_message('/id100/aruco_single/pose', PoseStamped)
+        # goal_pose = rospy.wait_for_message('/id101/aruco_single/pose', PoseStamped)
+
+        orientation_q = init_pose.pose.orientation
+        orientation_list = [orientation_q.x, orientation_q.y, orientation_q.z, orientation_q.w]
+        (roll, pitch, yaw) = euler_from_quaternion(orientation_list)
+        Orientation = yaw
+        dx = goal_pose.pose.position.x - init_pose.pose.position.x
+        dy = goal_pose.pose.position.y - init_pose.pose.position.y
+        distance = math.dist([init_pose.pose.position.x, init_pose.pose.position.y], [goal_pose.pose.position.x, goal_pose.pose.position.y])
+        goal_direct = math.atan2(dy, dx)
+
+        print("init_pose", [init_pose.pose.position.x, init_pose.pose.position.y])
+        print("goal_pose", [goal_pose.pose.position.x, goal_pose.pose.position.y])
+        print("Orientation", Orientation)
+
+        print("goal_direct", goal_direct)
+        if(Orientation < 0):
+            Orientation = Orientation + 2 * math.pi
+        if(goal_direct < 0):
+            goal_direct = goal_direct + 2 * math.pi
+
+        theta = goal_direct - Orientation
+
+        if theta < 0 and abs(theta) > abs(theta + 2 * math.pi):
+                theta = theta + 2 * math.pi
+        elif theta > 0 and abs(theta - 2 * math.pi) < theta:
+            theta = theta - 2 * math.pi
+        
+        print("theta:", theta)
+
+        k2 = 2
+        linear = 0.5
+        angular = k2 * theta
+        twist.linear.x = linear * distance * math.cos(theta)
+        twist.angular.z = -angular
+        cmd_pub.publish(twist)
+
+def navigation(turtlebot_name, aruco_id, goal_list,fetch_point):
    """
    Navigates the TurtleBot through a list of waypoints.
 
@@ -122,10 +165,26 @@ def navigation(turtlebot_name, aruco_id, goal_list):
            rospy.loginfo(f"Waypoint {current_position_idx + 1} reached: Moving to next waypoint.")
            current_position_idx += 1  # Move to the next waypoint
 
+
            # If all waypoints are reached, exit the loop
            if current_position_idx >= len(goal_list):
                rospy.loginfo("All waypoints have been reached.")
                break
+           
+           if turtlebot_name == "tb3_1" and current_position_idx == 11:
+                init_pose = rospy.wait_for_message(f'/{aruco_id}/aruco_single/pose', PoseStamped)
+                goal_pose = rospy.wait_for_message('/id102/aruco_single/pose', PoseStamped)
+                fetchNavigation(init_pose,goal_pose)
+                current_position_idx += 2  # Move to the next waypoint
+
+           
+           if turtlebot_name == "tb3_0" and current_position_idx == 6:
+                init_pose = rospy.wait_for_message(f'/{aruco_id}/aruco_single/pose', PoseStamped)
+                goal_pose = rospy.wait_for_message('/id103/aruco_single/pose', PoseStamped)
+                fetchNavigation(init_pose,goal_pose)
+                current_position_idx += 2  # Move to the next waypoint
+
+
 
        # Update the current pose
        init_pose = rospy.wait_for_message(f'/{aruco_id}/aruco_single/pose', PoseStamped)
@@ -221,10 +280,10 @@ def get_transformation_matrix(aruco_markers):
    ])
 
    sim_points = np.float32([
-       [-1, -1],     # Bottom-left corner in simulation
-       [11, -1],    # Bottom-right corner in simulation
-       [-1, 11],    # Top-left corner in simulation
-       [11, 11]    # Top-right corner in simulation
+       [0, 0],     # Bottom-left corner in simulation
+       [10, 0],    # Bottom-right corner in simulation
+       [0, 10],    # Top-left corner in simulation
+       [10, 10]    # Top-right corner in simulation
    ])
 
    # Calculate the perspective transformation matrix
@@ -321,9 +380,12 @@ def main():
 
    turtlebot_name2 = "tb3_1"  # Name of your TurtleBot
    aruco_id2 = "id101" 
+
+   fetch_point1 = "id101"
+   fetch_point2 = "id102"
    # Begin the navigation process
    # navigation(turtlebot_name, aruco_id, coordinates)
-   run([turtlebot_name1, turtlebot_name2], [aruco_id1, aruco_id2], coordinates)
+   run([turtlebot_name1, turtlebot_name2], [aruco_id1, aruco_id2], coordinates, [fetch_point1,fetch_point2])
 
 if __name__ == "__main__":
    try:
