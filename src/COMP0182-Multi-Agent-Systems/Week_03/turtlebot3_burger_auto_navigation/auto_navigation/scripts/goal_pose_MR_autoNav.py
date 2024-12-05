@@ -46,11 +46,19 @@ def convert_sim_to_real_pose(x, y, matrix):
 
     # Apply the perspective transformation
     transformed_point = np.dot(matrix, point)
-
+ 
     # Normalize to get the actual coordinates
     transformed_point = transformed_point / transformed_point[2]
 
     return transformed_point[0], transformed_point[1]
+
+    # # 添加比例因子调整（从0.8米调整到3米）
+    # scale_factor = 3 / 0.8  # 根据实际地图调整比例
+    # real_x = transformed_point[0] * scale_factor
+    # real_y = transformed_point[1] * scale_factor
+
+    # rospy.loginfo(f"Sim Pose: ({x}, {y}) -> Real Pose: ({real_x:.2f}, {real_y:.2f})")
+    # return real_x, real_y
 
 def check_goal_reached(current_pose, goal_x, goal_y, tolerance):
     """
@@ -84,6 +92,8 @@ def navigation(turtlebot_name, aruco_id, goal_list):
     - aruco_id (str): ArUco marker ID used for localization.
     - goal_list (List[Tuple[float, float]]): List of (X, Y) coordinates as waypoints.
     """
+
+    print(f"-------------goal_list:{goal_list}--------------------------")
     current_position_idx = 0  # Index of the current waypoint
 
     # Publisher to send velocity commands to the robot
@@ -101,10 +111,37 @@ def navigation(turtlebot_name, aruco_id, goal_list):
         goal_x, goal_y = goal_list[current_position_idx]
 
         # Check if the goal has been reached
-        if check_goal_reached(init_pose, goal_x, goal_y, tolerance=0.1):
+        if check_goal_reached(init_pose, goal_x, goal_y, tolerance=0.2):
             print(f"{turtlebot_name} x:{goal_x}, y:{goal_y}")
             rospy.loginfo(f"Waypoint {current_position_idx + 1} reached: Moving to next waypoint.")
-            current_position_idx += 1  # Move to the next waypoint
+
+            # implement action
+            # if current_position_idx == 10:
+                # # 实现转圈逻辑
+                # spin_twist = Twist()
+                # spin_twist.linear.x = 0  # 停止线速度
+                # spin_twist.angular.z = 1.0  # 设置角速度为1 rad/s
+
+                # spin_time = 2 * math.pi / abs(spin_twist.angular.z)  # 计算一圈所需时间
+                # start_time = rospy.Time.now()
+
+                # while rospy.Time.now() - start_time < rospy.Duration(spin_time):
+                #     cmd_pub.publish(spin_twist)
+                #     rospy.sleep(0.1)  # 小延迟
+
+                # rospy.loginfo("Spin complete. Moving to the next waypoint.")
+
+                #stay 2s
+                
+            # Add a 2-second pause at the specified step
+            if current_position_idx == 10:  # Change 10 to your desired step
+                rospy.loginfo(f"{turtlebot_name} pausing for 2 seconds at waypoint {current_position_idx + 1}.")
+                twist.linear.x = 0
+                twist.angular.z = 0
+                cmd_pub.publish(twist)  # Stop the robot
+                rospy.sleep(2)  # Pause for 2 seconds
+
+            current_position_idx += 1  # 转圈完成后，继续下一个路径点
 
             # If all waypoints are reached, exit the loop
             if current_position_idx >= len(goal_list):
@@ -148,7 +185,7 @@ def navigation(turtlebot_name, aruco_id, goal_list):
         rospy.logdebug(f"Distance to Goal: {distance:.2f} meters")
 
         # Control parameters (adjust these as needed)
-        k_linear = 0.5    # Linear speed gain
+        k_linear = 1.0    # Linear speed gain
         k_angular = 2.0   # Angular speed gain
 
         # Compute control commands
@@ -156,8 +193,8 @@ def navigation(turtlebot_name, aruco_id, goal_list):
         angular_velocity = -k_angular * theta  # Rotate towards the goal direction
 
         # Limit maximum speeds if necessary
-        max_linear_speed = 0.2  # meters per second
-        max_angular_speed = 1.0  # radians per second
+        max_linear_speed = 2.0  # meters per second
+        max_angular_speed = 6.0  # radians per second
 
         linear_velocity = max(-max_linear_speed, min(max_linear_speed, linear_velocity))
         angular_velocity = max(-max_angular_speed, min(max_angular_speed, angular_velocity))
@@ -205,16 +242,19 @@ def get_transformation_matrix(aruco_markers):
     ])
 
     sim_points = np.float32([
-        [0, 0],     # Bottom-left corner in simulation
-        [10, 0],    # Bottom-right corner in simulation
-        [0, 10],    # Top-left corner in simulation
-        [10, 10]    # Top-right corner in simulation
+        [-0.5, -0.5],     # Bottom-left corner in simulation
+        [10.5, -0.5],    # Bottom-right corner in simulation
+        [-0.5, 10.5],    # Top-left corner in simulation
+        [10.5, 10.5]    # Top-right corner in simulation
     ])
 
     # Calculate the perspective transformation matrix
     matrix = cv2.getPerspectiveTransform(sim_points, real_points)
 
     rospy.loginfo("Perspective transformation matrix calculated successfully.")
+    rospy.loginfo(f"Distance between id500 and id501: {abs(marker_poses['id501'][0] - marker_poses['id500'][0]):.2f} m")
+    rospy.loginfo(f"Distance between id500 and id503: {abs(marker_poses['id503'][1] - marker_poses['id500'][1]):.2f} m")
+
 
     return matrix
 
@@ -251,13 +291,14 @@ def read_and_transform_waypoints(file_path, matrix):
         rospy.logerr(f"Failed to read schedule YAML file: {e}")
         raise
 
-    coordinates = []  # List to store transformed waypoints
     coordinate_all = []
 
     # Process waypoints for each agent
     for agent_id, steps in schedule_data.items():
-
+        
         rospy.loginfo(f"Processing agent {agent_id}")
+
+        coordinates = []  # List to store transformed waypoints
 
         for step in steps:
             # Simulation coordinates
@@ -291,19 +332,24 @@ def run(turtlebot_agents, turtlebot_aruco_ids, turtlebot_goal_lists):
 
         goals: dictionary with boxID as the key and the corresponding goal positions as values
     """
+    # rospy.loginfo(f"Turtlebot agents: {turtlebot_agents}")
+    # rospy.loginfo(f"Turtlebot ArUco IDs: {turtlebot_aruco_ids}")
+    # rospy.loginfo(f"Turtlebot goal lists: {turtlebot_goal_lists}")
     threads = []
 
     for agent_idx in range(len(turtlebot_agents)):
         try:
+            rospy.loginfo(f"Starting thread for agent {agent_idx}")
             t = threading.Thread(target=navigation, 
                                  args=(
                                      turtlebot_agents[agent_idx], 
                                      turtlebot_aruco_ids[agent_idx], 
                                      turtlebot_goal_lists[agent_idx]))
+            threads.append(t)
+            t.start()
         except Exception as e:
             rospy.logerr(f"Navigation for agent {agent_idx} failed: {e}")
-        threads.append(t)
-        t.start()
+
 
     for t in threads:
         t.join()
@@ -332,29 +378,28 @@ def main():
 
     try:
         # Read and transform waypoints from the YAML file
-        coordinates = read_and_transform_waypoints("./cbs_output.yaml", matrix)
+        coordinates = read_and_transform_waypoints("/home/yingying/catkin_ws/src/COMP0182-Multi-Agent-Systems/Week_03/turtlebot3_burger_auto_navigation/auto_navigation/scripts/cbs_output.yaml", matrix)
     except Exception as e:
         rospy.logerr(f"Failed to read and transform waypoints: {e}")
         return
 
-    # Start navigation with the first agent's waypoints
-    # agents = ["turtle1", "turtle2"]
-    # aruco_ids = ["id402", "id403"]
-
-    # Begin the navigation process
-    # navigation(turtlebot_name, aruco_id, coordinates)
-
     turtlebot_agents = ["tb3_0","tb3_1"]
-    turtlebot_aruco_ids = ["id504","id100"]
+    turtlebot_aruco_ids = ["id101","id100"]
 
     # turtlebot_goal_lists = {}
     # for agent_id, value in coordinates.items():
     #     turtlebot_goal_lists[turtlebot_agents[agent_id]] = value
 
-
+    print(f"-=-----coordinates---------------:{coordinates}")
     run(turtlebot_agents, turtlebot_aruco_ids, coordinates)
+    # t1 = threading.Thread(target=navigation,args=(turtlebot_agents[0], turtlebot_aruco_ids[0], coordinates[0]))
+    # t2 = threading.Thread(target=navigation,args=(turtlebot_agents[1], turtlebot_aruco_ids[1], coordinates[1]))
 
+    # t1.start()
+    # t2.start()
 
+    # t1.join()
+    # t2.join()
     
 if __name__ == "__main__":
     try:

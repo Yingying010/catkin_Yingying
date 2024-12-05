@@ -80,6 +80,7 @@ def navigation(turtlebot_name, aruco_id, goal_list):
     - aruco_id (str): ArUco marker ID used for localization.
     - goal_list (List[Tuple[float, float]]): List of (X, Y) coordinates as waypoints.
     """
+    print(goal_list)
     current_position_idx = 0  # Index of the current waypoint
 
     # Publisher to send velocity commands to the robot
@@ -143,16 +144,16 @@ def navigation(turtlebot_name, aruco_id, goal_list):
         rospy.logdebug(f"Distance to Goal: {distance:.2f} meters")
 
         # Control parameters (adjust these as needed)
-        k_linear = 0.5    # Linear speed gain
-        k_angular = 2.0   # Angular speed gain
+        k_linear = 2.0    # Linear speed gain
+        k_angular = 3.0   # Angular speed gain
 
         # Compute control commands
         linear_velocity = k_linear * distance * math.cos(theta)  # Move forward towards the goal
         angular_velocity = -k_angular * theta  # Rotate towards the goal direction
 
         # Limit maximum speeds if necessary
-        max_linear_speed = 0.2  # meters per second
-        max_angular_speed = 1.0  # radians per second
+        max_linear_speed = 2.0  # meters per second
+        max_angular_speed = 1.5  # radians per second
 
         linear_velocity = max(-max_linear_speed, min(max_linear_speed, linear_velocity))
         angular_velocity = max(-max_angular_speed, min(max_angular_speed, angular_velocity))
@@ -287,14 +288,13 @@ def main():
 
     try:
         # Read and transform waypoints from the YAML file
-        coordinates = read_and_transform_waypoints("./cbs_output.yaml", matrix)
+        coordinates = read_and_transform_waypoints("/home/yingying/catkin_ws/src/COMP0182-Multi-Agent-Systems/Week_03/turtlebot3_burger_auto_navigation/auto_navigation/scripts/cbs_output.yaml", matrix)
     except Exception as e:
         rospy.logerr(f"Failed to read and transform waypoints: {e}")
         return
-
-    # Start navigation with the first agent's waypoints
+    
     turtlebot_name = "tb3_1"  # Name of your TurtleBot
-    aruco_id = "id100"          # ArUco marker ID for localization
+    aruco_id = "id504"          # ArUco marker ID for localization
 
     # Begin the navigation process
     navigation(turtlebot_name, aruco_id, coordinates)

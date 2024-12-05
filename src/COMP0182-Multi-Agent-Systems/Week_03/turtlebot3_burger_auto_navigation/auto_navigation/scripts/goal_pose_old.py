@@ -20,7 +20,7 @@ rospy.init_node('goal_pose')
 #         return True
 #     else:
 #         return False
-    
+
 def check_goal_reached(init_pose, goal_pose, bias):
     if(init_pose.pose.position.x > goal_pose.pose.position.x - bias and init_pose.pose.position.x < goal_pose.pose.position.x + bias\
         and init_pose.pose.position.y > goal_pose.pose.position.y - bias and init_pose.pose.position.y < goal_pose.pose.position.y + bias):
