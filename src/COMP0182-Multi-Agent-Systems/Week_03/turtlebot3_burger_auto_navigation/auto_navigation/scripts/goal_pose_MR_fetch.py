@@ -185,7 +185,6 @@ def navigation(turtlebot_name, aruco_id, goal_list,fetch_point):
                 current_position_idx += 2  # Move to the next waypoint
 
 
-
        # Update the current pose
        init_pose = rospy.wait_for_message(f'/{aruco_id}/aruco_single/pose', PoseStamped)
 
