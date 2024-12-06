@@ -93,49 +93,49 @@ def check_goal_reached(current_pose, goal_x, goal_y, tolerance):
        return False
    
 
-def fetchNavigation():
-    cmd_pub = rospy.Publisher('cmd_vel', Twist, queue_size=1)
-    twist = Twist()
-    while not check_goal_reached(init_pose, goal_pose, 0.05):
-        init_pose = rospy.wait_for_message('/id100/aruco_single/pose', PoseStamped)
-        # goal_pose = rospy.wait_for_message('/id101/aruco_single/pose', PoseStamped)
+# def fetchNavigation(aruco_id,goal_pose):
+#     cmd_pub = rospy.Publisher('cmd_vel', Twist, queue_size=1)
+#     twist = Twist()
+#     while not check_goal_reached(init_pose, goal_pose, 0.05):
+#         init_pose = rospy.wait_for_message(f'/{aruco_id}/aruco_single/pose', PoseStamped)
+#         # goal_pose = rospy.wait_for_message('/id101/aruco_single/pose', PoseStamped)
 
-        orientation_q = init_pose.pose.orientation
-        orientation_list = [orientation_q.x, orientation_q.y, orientation_q.z, orientation_q.w]
-        (roll, pitch, yaw) = euler_from_quaternion(orientation_list)
-        Orientation = yaw
-        dx = goal_pose.pose.position.x - init_pose.pose.position.x
-        dy = goal_pose.pose.position.y - init_pose.pose.position.y
-        distance = math.dist([init_pose.pose.position.x, init_pose.pose.position.y], [goal_pose.pose.position.x, goal_pose.pose.position.y])
-        goal_direct = math.atan2(dy, dx)
+#         orientation_q = init_pose.pose.orientation
+#         orientation_list = [orientation_q.x, orientation_q.y, orientation_q.z, orientation_q.w]
+#         (roll, pitch, yaw) = euler_from_quaternion(orientation_list)
+#         Orientation = yaw
+#         dx = goal_pose.pose.position.x - init_pose.pose.position.x
+#         dy = goal_pose.pose.position.y - init_pose.pose.position.y
+#         distance = math.dist([init_pose.pose.position.x, init_pose.pose.position.y], [goal_pose.pose.position.x, goal_pose.pose.position.y])
+#         goal_direct = math.atan2(dy, dx)
 
-        print("init_pose", [init_pose.pose.position.x, init_pose.pose.position.y])
-        print("goal_pose", [goal_pose.pose.position.x, goal_pose.pose.position.y])
-        print("Orientation", Orientation)
+#         print("init_pose", [init_pose.pose.position.x, init_pose.pose.position.y])
+#         print("goal_pose", [goal_pose.pose.position.x, goal_pose.pose.position.y])
+#         print("Orientation", Orientation)
 
-        print("goal_direct", goal_direct)
-        if(Orientation < 0):
-            Orientation = Orientation + 2 * math.pi
-        if(goal_direct < 0):
-            goal_direct = goal_direct + 2 * math.pi
+#         print("goal_direct", goal_direct)
+#         if(Orientation < 0):
+#             Orientation = Orientation + 2 * math.pi
+#         if(goal_direct < 0):
+#             goal_direct = goal_direct + 2 * math.pi
 
-        theta = goal_direct - Orientation
+#         theta = goal_direct - Orientation
 
-        if theta < 0 and abs(theta) > abs(theta + 2 * math.pi):
-                theta = theta + 2 * math.pi
-        elif theta > 0 and abs(theta - 2 * math.pi) < theta:
-            theta = theta - 2 * math.pi
+#         if theta < 0 and abs(theta) > abs(theta + 2 * math.pi):
+#                 theta = theta + 2 * math.pi
+#         elif theta > 0 and abs(theta - 2 * math.pi) < theta:
+#             theta = theta - 2 * math.pi
         
-        print("theta:", theta)
+#         print("theta:", theta)
 
-        k2 = 2
-        linear = 0.5
-        angular = k2 * theta
-        twist.linear.x = linear * distance * math.cos(theta)
-        twist.angular.z = -angular
-        cmd_pub.publish(twist)
+#         k2 = 2
+#         linear = 0.5
+#         angular = k2 * theta
+#         twist.linear.x = linear * distance * math.cos(theta)
+#         twist.angular.z = -angular
+#         cmd_pub.publish(twist)
 
-def navigation(turtlebot_name, aruco_id, goal_list,fetch_point):
+def navigation(turtlebot_name, aruco_id, goal_list):
    """
    Navigates the TurtleBot through a list of waypoints.
 
@@ -166,23 +166,24 @@ def navigation(turtlebot_name, aruco_id, goal_list,fetch_point):
            current_position_idx += 1  # Move to the next waypoint
 
 
-           # If all waypoints are reached, exit the loop
-           if current_position_idx >= len(goal_list):
-               rospy.loginfo("All waypoints have been reached.")
-               break
+        #    # If all waypoints are reached, exit the loop
+        #    if current_position_idx >= len(goal_list):
+        #        rospy.loginfo("All waypoints have been reached.")
+        #        break
            
-           if turtlebot_name == "tb3_1" and current_position_idx == 11:
-                init_pose = rospy.wait_for_message(f'/{aruco_id}/aruco_single/pose', PoseStamped)
-                goal_pose = rospy.wait_for_message('/id102/aruco_single/pose', PoseStamped)
-                fetchNavigation(init_pose,goal_pose)
-                current_position_idx += 2  # Move to the next waypoint
+        #    if turtlebot_name == "tb3_1" and current_position_idx == 15:
+        #         init_pose = rospy.wait_for_message(f'/{aruco_id}/aruco_single/pose', PoseStamped)
+        #         goal_pose = rospy.wait_for_message('/id102/aruco_single/pose', PoseStamped)
+        #         fetchNavigation(aruco_id,goal_pose)
+        #         current_position_idx += 2  # Move to the next waypoint
 
            
-           if turtlebot_name == "tb3_0" and current_position_idx == 6:
-                init_pose = rospy.wait_for_message(f'/{aruco_id}/aruco_single/pose', PoseStamped)
-                goal_pose = rospy.wait_for_message('/id103/aruco_single/pose', PoseStamped)
-                fetchNavigation(init_pose,goal_pose)
-                current_position_idx += 2  # Move to the next waypoint
+        #    if turtlebot_name == "tb3_0" and current_position_idx == 10:
+        #         init_pose = rospy.wait_for_message(f'/{aruco_id}/aruco_single/pose', PoseStamped)
+        #         goal_pose = rospy.wait_for_message('/id103/aruco_single/pose', PoseStamped)
+        #         fetchNavigation(aruco_id,goal_pose)
+        #         current_position_idx += 2  # Move to the next waypoint
+
 
 
        # Update the current pose
@@ -279,9 +280,9 @@ def get_transformation_matrix(aruco_markers):
    ])
 
    sim_points = np.float32([
-       [0, 0],     # Bottom-left corner in simulation
-       [10, 0],    # Bottom-right corner in simulation
-       [0, 10],    # Top-left corner in simulation
+       [-1, -1],     # Bottom-left corner in simulation
+       [10, -1],    # Bottom-right corner in simulation
+       [-1, 10],    # Top-left corner in simulation
        [10, 10]    # Top-right corner in simulation
    ])
 
@@ -368,23 +369,39 @@ def main():
 
    try:
        # Read and transform waypoints from the YAML file
-       coordinates = read_and_transform_waypoints("./cbs_output.yaml", matrix)
+       coordinates = read_and_transform_waypoints("cbs_output_nofetchPoint_multiAgent.yaml", matrix)
+       goal_pose1 = rospy.wait_for_message('/id102/aruco_single/pose', PoseStamped) # 9,6
+       goal_pose2 = rospy.wait_for_message('/id103/aruco_single/pose', PoseStamped) # 0,6
+       # (3, 7), (9, 6), (5, 5)
+       coordinates[0].insert(9, (goal_pose1.pose.position.x, goal_pose1.pose.position.y))
+       del coordinates[0][10]
+       del coordinates[0][10]
+       del coordinates[0][10]
+       del coordinates[0][10]
+       del coordinates[0][10]
+       # (2, 7), (0, 6), (2, 5)
+       coordinates[1].insert(6, (goal_pose2.pose.position.x, goal_pose2.pose.position.y))
+       del coordinates[1][7]
    except Exception as e:
        rospy.logerr(f"Failed to read and transform waypoints: {e}")
        return
+   
+   print("--------------------------------------------------------------------------")
+   print(f"coordinates_0:{coordinates[0]}")
+   print(f"coordinates_1:{coordinates[1]}")
 
    # Start navigation with the first agent's waypoints
-   turtlebot_name1 = "tb3_0"  # Name of your TurtleBot
-   aruco_id1 = "id100"          # ArUco marker ID for localization
+   turtlebot_name1 = "tb3_1"  # Name of your TurtleBot
+   aruco_id1 = "id504"          # ArUco marker ID for localization
 
-   turtlebot_name2 = "tb3_1"  # Name of your TurtleBot
-   aruco_id2 = "id101" 
+   turtlebot_name2 = "tb3_0"  # Name of your TurtleBot
+   aruco_id2 = "id108" 
 
-   fetch_point1 = "id101"
-   fetch_point2 = "id102"
+   fetch_point1 = "id102"
+   fetch_point2 = "id103"
    # Begin the navigation process
    # navigation(turtlebot_name, aruco_id, coordinates)
-   run([turtlebot_name1, turtlebot_name2], [aruco_id1, aruco_id2], coordinates, [fetch_point1,fetch_point2])
+   run([turtlebot_name1, turtlebot_name2], [aruco_id1, aruco_id2], coordinates)
 
 if __name__ == "__main__":
    try:

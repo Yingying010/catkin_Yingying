@@ -310,7 +310,7 @@ def main():
 
    try:
        # Read and transform waypoints from the YAML file
-       coordinates = read_and_transform_waypoints("./cbs_output.yaml", matrix)
+       coordinates = read_and_transform_waypoints("cbs_output_fetchPoint_multiAgent.yaml", matrix)
    except Exception as e:
        rospy.logerr(f"Failed to read and transform waypoints: {e}")
        return
