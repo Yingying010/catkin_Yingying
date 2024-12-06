@@ -158,6 +158,11 @@ def navigation(turtlebot_name, aruco_id, goal_list):
         linear_velocity = max(-max_linear_speed, min(max_linear_speed, linear_velocity))
         angular_velocity = max(-max_angular_speed, min(max_angular_speed, angular_velocity))
 
+        if angular_velocity > 0.8:
+           linear_velocity = 0.1
+           
+
+
         # Set Twist message
         twist.linear.x = linear_velocity
         twist.angular.z = angular_velocity
