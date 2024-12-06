@@ -206,10 +206,10 @@ def get_transformation_matrix(aruco_markers):
     ])
 
     sim_points = np.float32([
-        [0.1, 0.1],     # Bottom-left corner in simulation
-        [9.9, 0.3],    # Bottom-right corner in simulation
-        [0.1, 9.9],    # Top-left corner in simulation
-        [9.8, 9.8]    # Top-right corner in simulation
+        [-1, -1],     # Bottom-left corner in simulation
+        [10, -1],    # Bottom-right corner in simulation
+        [-1, 10],    # Top-left corner in simulation
+        [-1, -1]    # Top-right corner in simulation
     ])
 
     # Calculate the perspective transformation matrix
