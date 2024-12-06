@@ -172,8 +172,18 @@ def navigation(turtlebot_name, aruco_id, goal_list):
        angular_velocity = -k_angular * theta  # Rotate towards the goal direction
 
        # Limit maximum speeds if necessary
-       max_linear_speed = 0.2  # meters per second
        max_angular_speed = 1.0  # radians per second
+
+
+       if angular_velocity > 0.8:
+           linear_velocity = 0.1
+
+
+       if turtlebot_name == "tb_1":
+           max_linear_speed = 0.2
+       else:
+           max_linear_speed = 3.0
+           
 
        linear_velocity = max(-max_linear_speed, min(max_linear_speed, linear_velocity))
        angular_velocity = max(-max_angular_speed, min(max_angular_speed, angular_velocity))
@@ -222,9 +232,9 @@ def get_transformation_matrix(aruco_markers):
 
    sim_points = np.float32([
        [-1, -1],     # Bottom-left corner in simulation
-       [11, -1],    # Bottom-right corner in simulation
-       [-1, 11],    # Top-left corner in simulation
-       [11, 11]    # Top-right corner in simulation
+       [10, -1],    # Bottom-right corner in simulation
+       [-1, 10],    # Top-left corner in simulation
+       [10, 10]    # Top-right corner in simulation
    ])
 
    # Calculate the perspective transformation matrix
